@@ -1,0 +1,28 @@
+name: Seed MockAPI
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: 'Create sample data on 6af2096142c6561ced38f09d.mockapi.io (resources must already exist)'
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: seed-mockapi
+  cancel-in-progress: false
+jobs:
+  seed:
+    if: ${{ inputs.confirm_write == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Create sample categories and courses
+        env:
+          MOCKAPI_BASE_URL: https://6af2096142c6561ced38f09d.mockapi.io/api/v1
+        run: node scripts/seed.mjs --confirm
