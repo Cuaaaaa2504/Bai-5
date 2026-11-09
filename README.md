@@ -1,101 +1,101 @@
-# CourseHub — Bài 5 Quản lý khóa học
+# CourseHub — Quản lý khóa học
 
-Ứng dụng React Native + Expo, dùng MockAPI làm backend. Không có backend riêng, không dùng danh sách hardcode thay thế dữ liệu API.
+Bản 2: React Native + Expo, backend MockAPI thật. Đã viết lại luồng khởi động, CRUD, validation, xử lý lỗi và giao diện. Không có backend riêng hay danh sách hardcode thay API.
 
-## Trạng thái
+## Giới hạn xác minh
 
-Đã chuẩn bị mã nguồn; chưa chạy npm install, build Android hoặc kiểm thử trên thiết bị trong môi trường tạo mã. Chưa có Base URL MockAPI thật của chủ repo. Cần cấu hình và chạy checklist trước khi nộp. Chưa có video thuyết trình được ghi hình.
+Chưa chạy build hoặc thử trực tiếp trên điện thoại trong phiên tạo mã. Không khẳng định đã sửa được native crash chỉ bằng việc thay code. Workflow Check mobile app kiểm tra unit test và export JavaScript cho Android/iOS sau commit; export thành công cũng không chứng minh native runtime không crash. ErrorBoundary chỉ bắt lỗi JavaScript khi render, không bắt lỗi native, lỗi tải bundle hoặc SDK mismatch.
 
-## Yêu cầu môi trường và chạy
+## Cài và chạy trên Windows
 
-- Node.js 20.19+ và npm.
-- Android emulator hoặc điện thoại với Expo Go tương thích Expo SDK 54. Nếu Expo Go hiện tại không hỗ trợ SDK 54, dùng bản Android tương thích từ trang Expo Go hoặc tạo development build; không tự nâng riêng từng dependency.
+Dùng Node.js 24 bản vá mới hoặc Node 26; tránh bản 24.16.0 đã gây assertion trên máy người dùng. VS Code chỉ là editor. Không cần tạo project Android Studio mới.
 
-```sh
-npm install
-npx expo install --check
-npm start
+```powershell
+git clone https://github.com/Cuaaaaa2504/Bai-5.git
+cd Bai-5
+npm run setup
+npm test
+npx expo-doctor@latest
+npm run tunnel
 ```
 
-Nhấn a để mở Android emulator, hoặc quét QR trên điện thoại cùng mạng. Nếu cần tunnel: `npx expo start --tunnel`. Đây là app mobile, chưa cấu hình chạy web. Lần cài đầu tạo package-lock.json; commit lockfile sau khi kiểm tra dependency để cố định phiên bản.
+Nếu đã clone, kiểm tra `git status` rồi `git pull` trước. Nếu App.js đang được thay bằng màn hình thử, sao lưu ra ngoài repo trước khi khôi phục file; không dùng reset --hard để tránh mất công việc.
 
-## Tạo MockAPI
+### Đồng bộ SDK với Expo Go
 
-1. Tạo project tại https://mockapi.io/. Tạo 2 resource ĐỘC LẬP `categories` và `courses` (không tạo resource lồng nhau).
-2. categories: `id` String tự sinh, `name` String, `description` String.
-3. courses: `id` String tự sinh, `title` String, `description` String, `categoryId` String, `instructor` String, `price` Number, `duration` Number, `thumbnail` String, `trailerUrl` String, `createdAt` String. Giữ các trường đúng tên và đúng chữ hoa/thường.
-4. Copy Base URL thực tế từ project, ví dụ `https://YOUR_PROJECT.mockapi.io/api/v1`. Prefix phải trùng cấu hình project của bạn, không thêm `/courses` hoặc `/categories`.
-5. Mở tab API trong app, nhập Base URL và chọn Kiểm tra và lưu. App GET cả hai resource trước khi lưu URL vào AsyncStorage. AsyncStorage chỉ lưu URL cấu hình, không thay thế backend.
+Baseline trong package.json là SDK 57 theo metadata npm đã kiểm tra khi viết. Đây không phải cam kết là SDK mới nhất hoặc SDK đang được cài trong Expo Go của bạn. Mỗi bản Expo Go chỉ hỗ trợ SDK tương ứng. Nếu điện thoại yêu cầu SDK 58, chạy:
 
-### Tạo dữ liệu mẫu
-
-Script sau ghi dữ liệu lên API thật. Kiểm tra đúng project trước khi chạy. Không đặt URL có thông tin bí mật vào repo.
-
-PowerShell:
 ```powershell
-$env:MOCKAPI_BASE_URL="https://YOUR_PROJECT.mockapi.io/api/v1"
+npm run setup -- --sdk=58
+npx expo-doctor@latest
+npm run tunnel
+```
+
+Script setup cài Expo rồi đọc bundledNativeModules.json của chính SDK đó để chọn React, React Native, expo-video, AsyncStorage, safe-area và constants. Không đoán version native package và không dùng --force/--legacy-peer-deps. Script thay package.json và tạo/cập nhật package-lock.json; giữ hai file cùng nhau, commit sau khi kiểm thử thành công. Chạy lại setup khi đổi SDK, không chỉ chạy npm install rồi mở app vì các module tùy chọn được cài ở bước setup. Trước đổi SDK, sao lưu thay đổi hoặc commit trạng thái hiện tại.
+
+Mở Expo Go tương thích và quét QR mới. iPhone thật cần Expo Go và CLI cùng tài khoản: `npx expo whoami`, `npx expo login`. Nếu dùng máy ảo Android, mở emulator rồi `npm run android`. Nếu điện thoại vẫn tự đóng, lấy log terminal và log thiết bị; không lặp lại cài Node khi lỗi Node đã hết.
+
+## MockAPI đã cấu hình
+
+Base URL mặc định: `https://6af2096142c6561ced38f09d.mockapi.io/api/v1`
+
+App tự tải từ URL này khi mở lần đầu. Tab Cấu hình cho đổi URL và kiểm tra trước khi lưu; URL đã lưu từ phiên bản cũ được ưu tiên. Không cần nhập lại nếu đã đúng.
+
+Tạo hai resource độc lập, không lồng nhau:
+
+| Resource | Schema |
+|---|---|
+| categories | id tự sinh; name String; description String |
+| courses | id tự sinh; title String; description String; categoryId String; instructor String; price Number; duration Number; thumbnail String; trailerUrl String; createdAt String |
+
+Chỉ lưu URL ảnh/trailer. categoryId liên kết id danh mục. Tên danh mục luôn lấy từ API.
+
+### Dữ liệu mẫu
+
+Dùng Actions > Seed MockAPI > Run workflow > main > tích confirm_write. Hoặc PowerShell:
+
+```powershell
+$env:MOCKAPI_BASE_URL="https://6af2096142c6561ced38f09d.mockapi.io/api/v1"
 npm run seed -- --confirm
 ```
 
-Bash:
-```sh
-MOCKAPI_BASE_URL=https://YOUR_PROJECT.mockapi.io/api/v1 npm run seed -- --confirm
-```
+Đây là thao tác ghi 3 danh mục và 10 khóa học lên API, không phải dữ liệu giả hiển thị cục bộ. Phải tạo schema trước. Script bỏ qua tên/tiêu đề đã tồn tại và không xóa dữ liệu cũ; lỗi giữa chừng có thể đã ghi một phần. Video Big Buck Bunny chỉ minh họa kỹ thuật phát MP4, không phải trailer thật của khóa học.
 
-Script tạo 3 danh mục và 10 khóa học, dùng id danh mục do API trả về. Chạy lại sẽ bỏ qua tên danh mục/tên khóa học mẫu đã tồn tại. Không xóa dữ liệu cũ. Khi lỗi giữa chừng, có thể đã ghi một phần; kiểm tra API và chạy lại. Nếu dữ liệu cũ có tiêu đề trùng nhưng sai categoryId, cần sửa trong app. Ảnh dùng picsum.photos; trailer dùng video Big Buck Bunny công khai làm demo kỹ thuật, không phải trailer thật của từng khóa học. URL bên thứ ba có thể thay đổi, cần thử phát trước khi nộp.
+## Màn hình và chức năng
 
-## Chức năng và kiến trúc
+1. Danh sách: ảnh bìa, tên, giảng viên, tên danh mục, giá VNĐ; tìm theo tên và lọc danh mục kết hợp; kéo tải lại.
+2. Chi tiết: gọi GET theo id, toàn bộ thông tin, ảnh, trailer trong modal, sửa/xóa có xác nhận.
+3. Form thêm/sửa: trường bắt buộc, chọn danh mục từ API, preview ảnh, học phí hữu hạn >=0, thời lượng >0, URL hợp lệ và MP4 trực tiếp. createdAt giữ lại khi sửa.
+4. Danh mục: danh sách, thêm/sửa/xóa; GET khóa học mới nhất và chặn xóa danh mục có khóa học.
+5. Cấu hình: Base URL, nền tảng, thông tin SDK. Có loading, lỗi, retry và dữ liệu rỗng.
 
-- `App.js`: danh sách, chi tiết, form thêm/sửa khóa học, quản lý danh mục, cấu hình API và modal phát video.
-- `src/api.js`: fetch JSON, HTTP errors, timeout 15 giây, tải categories/courses song song.
-- `scripts/seed.mjs`: nạp dữ liệu lên MockAPI, không được import vào app.
-- Ảnh dùng React Native Image, có trạng thái ảnh lỗi. Video dùng expo-video, chỉ nhập URL MP4 trực tiếp. Không hỗ trợ link trang YouTube.
-- Danh sách lấy GET /courses và GET /categories, ghép tên qua String(course.categoryId) === String(category.id). Tìm kiếm và lọc phía client trên dữ liệu đã tải từ API.
-- Mở chi tiết gọi GET /courses/{id}. Thêm POST; sửa PUT; xóa DELETE. Sau ghi gọi lại API để đồng bộ. Nếu ghi thành công nhưng tải lại lỗi, hiển thị cảnh báo thay vì nói ghi thất bại.
-- Trước lưu khóa học, kiểm tra trường bắt buộc, URL, học phí hữu hạn >= 0, thời lượng hữu hạn > 0 và GET danh mục mới nhất để kiểm tra categoryId. createdAt được tạo khi thêm và giữ lại khi sửa.
-- Trước xóa danh mục, xác nhận với người dùng rồi GET /courses mới nhất; có khóa học liên quan thì chặn DELETE. Đây là ràng buộc phía ứng dụng theo đề: không có transaction/foreign key phía server, nên không thể đảm bảo tuyệt đối nếu nhiều client cùng sửa đồng thời.
-- Có loading, lỗi API, retry, kéo tải lại, trạng thái rỗng và khóa thao tác ghi chống bấm trùng.
+Tìm kiếm/lọc phía client trên dữ liệu API. CRUD dùng GET/POST/PUT/DELETE. Sau ghi tải lại hai resource; ghi thành công nhưng refresh lỗi thì hiện thông báo phân biệt. Chặn thao tác trùng khi đang gửi. Kiểm tra categoryId bằng danh mục mới nhất trước lưu. Ràng buộc xóa danh mục là phía client, không thể bảo đảm transaction nếu nhiều client đồng thời. Không hỗ trợ link trang YouTube.
 
-## API
+## Cấu trúc
 
-| Method | Endpoint | Chức năng |
-|---|---|---|
-| GET | /categories | Lấy danh mục |
-| POST | /categories | Thêm danh mục |
-| PUT | /categories/{id} | Sửa danh mục |
-| DELETE | /categories/{id} | Xóa danh mục sau kiểm tra |
-| GET | /courses | Lấy khóa học |
-| GET | /courses/{id} | Chi tiết khóa học |
-| POST | /courses | Thêm khóa học |
-| PUT | /courses/{id} | Sửa khóa học |
-| DELETE | /courses/{id} | Xóa khóa học |
+- App.js: boot guard và ErrorBoundary.
+- src/AppRoot.js: điều phối màn hình và thao tác API.
+- src/ui.js: component và styles dùng chung.
+- src/Trailer.js: chỉ require khi mở trailer, dùng expo-video và tự giải phóng player khi unmount.
+- src/api.js: timeout, JSON, HTTP errors, kiểm tra mảng và id.
+- src/domain.mjs: validation thuần, dùng chung với unit test.
+- src/config.js: Base URL mặc định.
+- scripts/setup.mjs: đồng bộ dependency theo Expo SDK.
+- scripts/seed.mjs: nạp dữ liệu API thật.
 
-## Checklist kiểm thử thủ công
+## Kiểm thử trước khi nộp
 
-- [ ] Cài dependency, `npx expo-doctor`, mở app Android không lỗi runtime.
-- [ ] Cấu hình Base URL thật, đóng/mở app vẫn giữ URL.
-- [ ] Seed và xác nhận ít nhất 3 danh mục, 10 khóa học trên MockAPI.
-- [ ] Danh sách hiển thị ảnh, tên, giảng viên, tên danh mục và học phí.
-- [ ] Tìm tên, lọc danh mục, phối hợp hai điều kiện, không có kết quả.
-- [ ] Chi tiết đúng id, đầy đủ dữ liệu; video chạy, tạm dừng, toàn màn hình, đóng video ngừng phát.
-- [ ] Thêm khóa học, kiểm tra GET trên MockAPI thấy bản ghi mới.
-- [ ] Sửa thông tin và danh mục; createdAt không đổi; mở lại app thấy dữ liệu mới.
-- [ ] Hủy xóa không đổi dữ liệu; xác nhận xóa cập nhật API và danh sách.
-- [ ] Thêm/sửa danh mục; đổi tên phản ánh trong khóa học; danh mục đang có khóa học không xóa được.
-- [ ] Chặn trường rỗng, số âm, số không hợp lệ, thời lượng 0, URL sai, categoryId không tồn tại.
-- [ ] Tắt mạng: có thông báo lỗi, thử lại khi bật mạng. Thử ảnh/video URL hỏng.
-- [ ] Thử resource rỗng trên project thử nghiệm riêng, không xóa project chính để test.
+- [ ] Check mobile app trên Actions thành công; giữ lockfile đã kiểm tra.
+- [ ] App mở trên điện thoại đúng Expo Go SDK; không chỉ dừng ở export bundle.
+- [ ] API có ít nhất 3 danh mục và 10 khóa học.
+- [ ] Tìm kiếm/lọc, chi tiết đúng id, phát/dừng/toàn màn hình/đóng trailer.
+- [ ] POST/PUT/DELETE phản ánh trên MockAPI và còn đúng sau mở lại app.
+- [ ] Sửa danh mục cập nhật tên ở khóa học; chặn xóa danh mục có khóa học.
+- [ ] Validation trường rỗng, số âm, NaN, categoryId không tồn tại, URL hỏng.
+- [ ] Tắt mạng, retry, ảnh/video lỗi, API rỗng trên project thử nghiệm riêng.
 
-## Kịch bản video thuyết trình
+## Kịch bản video nộp bài
 
-1. Giới thiệu đề tài, bốn màn hình chính và cấu hình project MockAPI.
-2. Mở schema và dữ liệu thật, giải thích quan hệ categories.id và courses.categoryId.
-3. Giải thích request() và loadAll(): GET, JSON, Promise.all, timeout, lỗi HTTP.
-4. Demo danh sách, ảnh URL, tìm kiếm, lọc; mở chi tiết và phát MP4 trong app.
-5. Demo POST thêm, PUT sửa, DELETE xóa, đối chiếu dữ liệu trên MockAPI sau mỗi bước.
-6. Demo CRUD danh mục, chặn xóa danh mục có khóa học và validation.
-7. Demo mất mạng, retry và giải thích giới hạn ràng buộc phía client.
+Giới thiệu app và schema; GET courses/categories và ghép categoryId; tìm/lọc; GET chi tiết; phát MP4 trong app; POST thêm; PUT sửa; DELETE xóa và đối chiếu MockAPI; CRUD danh mục và chặn xóa; validation, loading và mất mạng; giải thích source API và JSON.
 
-## Sản phẩm cần hoàn tất trước khi nộp
-
-Source code trong repo; Base URL/project MockAPI thật của bạn; README này; video ghi hình theo kịch bản trên. Không cần upload ảnh/video lên server, chỉ lưu URL String. Không công bố ứng dụng MockAPI chứa dữ liệu nhạy cảm vì endpoint có thể cho phép ghi công khai.
+Sản phẩm nộp: source repo, link project/API MockAPI, README và video ghi hình. Video chưa được ghi tự động. Không dùng dữ liệu nhạy cảm vì endpoint MockAPI có thể cho ghi công khai.
