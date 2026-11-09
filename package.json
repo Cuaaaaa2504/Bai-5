@@ -1,0 +1,8 @@
+{
+  "name": "course-management",
+  "version": "1.0.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {"start": "expo start", "android": "expo start --android", "seed": "node scripts/seed.mjs"},
+  "dependencies": {"expo": "~54.0.0", "react": "19.1.0", "react-native": "0.81.5", "expo-video": "~3.0.11", "@react-native-async-storage/async-storage": "2.2.0"}
+}
